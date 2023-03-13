@@ -23,7 +23,7 @@ export default function Experience(props: { enableDebug?: boolean }) {
         }}
       >
         <SoftShadows focus={0.2} samples={32} />
-        <Effects />
+        {/* <Effects /> */}
         <color args={['lightblue']} attach='background' />
         {props.enableDebug && (
           <>

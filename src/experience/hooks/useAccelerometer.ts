@@ -10,6 +10,7 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
   const isSupported = useRef(false)
   const isDenied = useRef(false)
   const isGranted = useRef(false)
+  const wasUpdated = useRef(false)
   const alpha = useRef(0)
   const beta = useRef(0)
   const gamma = useRef(0)
@@ -34,6 +35,10 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
     alpha.current = (event.alpha * Math.PI) / 180
     beta.current = (event.beta * Math.PI) / 180
     gamma.current = (event.gamma * Math.PI) / 180
+
+    if (!wasUpdated.current) {
+      wasUpdated.current = true
+    }
   }
 
   function updateOrientation() {
@@ -83,6 +88,10 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
         event.accelerationIncludingGravity.z,
         -event.accelerationIncludingGravity.y,
       )
+
+    if (!wasUpdated.current) {
+      wasUpdated.current = true
+    }
   }
 
   function updateAcceleration() {
@@ -134,6 +143,9 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
           isDenied.current = true
           isGranted.current = false
         })
+    } else if (window.DeviceMotionEvent) {
+      isDenied.current = false
+      isGranted.current = true
     }
   }
 
@@ -171,6 +183,7 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
     smoothViewportDirection,
     smoothDeviceForceWithGravity,
     smoothWorldForceWithGravity,
+    wasUpdated,
   }
 }
 

@@ -1,7 +1,7 @@
 import * as THREE from 'three'
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 
-import { useGLTF } from '@react-three/drei'
+import { RoundedBox } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 
 interface WallProps {
@@ -18,16 +18,6 @@ export default function Walls(props: WallProps) {
   }
 
   const modelRef = useRef<THREE.Mesh | null>(null)
-
-  const cube = useGLTF('/cube.glb')
-
-  useEffect(() => {
-    if (modelRef.current && cube.scene.children[0] instanceof THREE.Mesh) {
-      modelRef.current.geometry = cube.scene.children[0].geometry
-      modelRef.current.material = cube.scene.children[0].material
-      modelRef.current.receiveShadow = true
-    }
-  }, [])
 
   return (
     <>
@@ -79,11 +69,20 @@ export default function Walls(props: WallProps) {
         </group>
       </RigidBody>
 
-      <mesh
+      <RoundedBox
         ref={modelRef}
         position={props.position}
-        scale={[props.size[0] / 10, props.size[1] / 10, props.size[2] / 10]}
-      />
+        args={[props.size[0], props.size[1], props.size[2]]}
+        radius={0.5}
+        receiveShadow
+        smoothness={4}
+      >
+        <meshStandardMaterial
+          color='silver'
+          roughness={0.4}
+          side={1}
+        ></meshStandardMaterial>
+      </RoundedBox>
     </>
   )
 }
