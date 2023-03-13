@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 
-import { PerformanceMonitor } from '@react-three/drei'
+import { PerformanceMonitor, SoftShadows } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Debug, Physics } from '@react-three/rapier'
 
@@ -8,6 +8,7 @@ import { Leva } from 'leva'
 import { Perf } from 'r3f-perf'
 
 import Scene from '#/Scene'
+import Effects from '$/Effects'
 
 export default function Experience(props: { enableDebug?: boolean }) {
   return (
@@ -21,6 +22,8 @@ export default function Experience(props: { enableDebug?: boolean }) {
           position: [5, 5, 5],
         }}
       >
+        <SoftShadows focus={0.2} samples={32} />
+        <Effects />
         <color args={['lightblue']} attach='background' />
         {props.enableDebug && (
           <>

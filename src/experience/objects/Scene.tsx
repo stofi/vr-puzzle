@@ -1,32 +1,43 @@
-import { Environment, OrbitControls } from '@react-three/drei'
+import { Environment } from '@react-three/drei'
+import { useFrame } from '@react-three/fiber'
 
+// import { useRapier } from '@react-three/rapier'
 import { useControls } from 'leva'
 
+import Level from '#/Level'
 import Sphere from '#/Sphere'
 
 export default function Scene() {
-  const { sphereColor, floorColor } = useControls({
+  const { sphereColor } = useControls({
     sphereColor: { value: 'red', label: 'Sphere Color' },
-    floorColor: { value: '#5c5c5c', label: 'Floor Color' },
+  })
+
+  // const { world } = useRapier()
+
+  useFrame(() => {
+    // world.setGravity(smoothDownDirection.current.clone().multiplyScalar(10))
   })
 
   return (
     <>
-      <OrbitControls makeDefault />
+      {/* <OrbitControls makeDefault /> */}
 
-      <directionalLight position={[3, 10, -5]} castShadow />
+      {/* <directionalLight position={[3, 10, -5]} castShadow>
+        <orthographicCamera
+          near={0.1}
+          far={20}
+          left={-10}
+          right={10}
+          top={10}
+          bottom={-10}
+          attach='shadow-camera'
+        />
+      </directionalLight> */}
+      <Environment files='https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/aerodynamics_workshop_1k.hdr' />
 
-      <hemisphereLight intensity={0.5} args={['lightblue', 'lightgreen']} />
-
-      <Environment preset='sunset' background={false}></Environment>
-
-      <Sphere color={sphereColor} />
-
-      <mesh receiveShadow rotation-x={-Math.PI * 0.5} position-y={-0.001}>
-        <planeGeometry args={[10, 10]} />
-
-        <meshStandardMaterial color={floorColor} roughness={0.8} />
-      </mesh>
+      <Level>
+        <Sphere color={sphereColor} />
+      </Level>
     </>
   )
 }
