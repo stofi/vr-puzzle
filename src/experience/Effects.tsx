@@ -13,7 +13,7 @@ export default function Effects() {
   const { enableBloom, enableDepthOfField, enableNoise, enableVignette } =
     useControls('Effects', {
       enableBloom: {
-        value: true,
+        value: false,
         label: 'Bloom',
       },
       enableDepthOfField: {
@@ -21,11 +21,11 @@ export default function Effects() {
         label: 'Depth of Field',
       },
       enableNoise: {
-        value: true,
+        value: false,
         label: 'Noise',
       },
       enableVignette: {
-        value: true,
+        value: false,
         label: 'Vignette',
       },
     })
@@ -34,9 +34,9 @@ export default function Effects() {
     <EffectComposer>
       {enableDepthOfField && (
         <DepthOfField
-          worldFocusDistance={30}
+          worldFocusDistance={14}
           focalLength={0.04}
-          bokehScale={20}
+          bokehScale={2}
           height={480}
         />
       )}

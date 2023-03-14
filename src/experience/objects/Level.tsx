@@ -5,26 +5,25 @@ import {
   PerspectiveCamera,
   // MeshTransmissionMaterial,
 } from '@react-three/drei'
-import { ThreeEvent, useFrame } from '@react-three/fiber'
-import { RigidBody, useRapier } from '@react-three/rapier'
+import { GroupProps, useFrame } from '@react-three/fiber'
+import { useRapier } from '@react-three/rapier'
 
-import Funnel from '#/Funnel'
-import HangingLight from '#/HangingLight'
-import Hoop from '#/Hoop'
-import Mill from '#/Mill'
-import MyBox from '#/MyBox'
+import type { DragRef } from '#/Drag'
+import Drag from '#/Drag'
+import Sphere from '#/Sphere'
 import Walls from '#/Walls'
 import useAccelerometer from '$/hooks/useAccelerometer'
-import DragMaterial from '$/materials/DragMaterial'
-
-interface LevelProps {
-  children: React.ReactNode
-}
 
 const zAxis = new THREE.Vector3(1, 0, 0)
 
-export default function Level({ children }: LevelProps) {
+interface LevelProps extends GroupProps {
+  size: [number, number, number]
+}
+
+export default function Level(props: LevelProps) {
   const cameraGroup = useRef<THREE.Group | null>(null)
+  const dragRef = useRef<DragRef | null>(null)
+  const lightRef = useRef<THREE.DirectionalLight | null>(null)
 
   const {
     update,
@@ -39,62 +38,25 @@ export default function Level({ children }: LevelProps) {
   } = useAccelerometer()
   const { world } = useRapier()
 
-  const enableDrag = useRef(true)
-  const dragging = useRef(false)
-  const draggingRef = useRef<THREE.Group | null>(null)
-  const dragPrevDirection = useRef(new THREE.Vector3(0, 0, 0))
-  const dragDirection = useRef(new THREE.Vector3(0, 0, 0))
-  const downDirection = useRef(new THREE.Vector3(0, -1, 0))
-  const q = useRef(new THREE.Quaternion())
-  const g = useRef(new THREE.Vector3(0, -1, 0))
-
   const forceTimeout = useRef<number>(0)
-
-  const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    dragging.current = true
-    dragPrevDirection.current.copy(e.point.normalize())
-    dragDirection.current.copy(e.point.normalize())
-
-    q.current.setFromUnitVectors(
-      downDirection.current,
-      dragPrevDirection.current,
-    )
-  }
-
-  const handlePointerMove = (e: ThreeEvent<PointerEvent>) => {
-    if (dragging.current) {
-      dragDirection.current.copy(e.point.normalize())
-    }
-  }
-
-  const handleCancel = () => {
-    dragging.current = false
-  }
 
   useFrame((state, delta) => {
     update()
-
-    q.current.setFromUnitVectors(
-      dragPrevDirection.current,
-      dragDirection.current,
-    )
-    dragPrevDirection.current.copy(dragDirection.current)
-
-    downDirection.current.applyQuaternion(q.current)
 
     if (forceTimeout.current > 0) {
       forceTimeout.current -= delta
     }
     forceTimeout.current = Math.max(0, forceTimeout.current)
 
-    if (enableDrag.current) {
-      if (dragging.current) {
-        if (draggingRef.current) {
-          draggingRef.current.applyQuaternion(q.current)
-          g.current.applyQuaternion(q.current)
-          world.setGravity(g.current.clone().multiplyScalar(9.81))
-          // alert(g.current)
-        }
+    if (dragRef.current && dragRef.current.dragEnabled()) {
+      world.setGravity(
+        dragRef.current.getDirection().clone().multiplyScalar(20),
+      )
+
+      if (lightRef.current) {
+        lightRef.current.position.copy(
+          dragRef.current.getDirection().clone().multiplyScalar(-10),
+        )
       }
     } else if (isSupported.current && isGranted.current) {
       // alert(worldForceWithGravity.current.x)
@@ -106,10 +68,21 @@ export default function Level({ children }: LevelProps) {
           .multiplyScalar(9.81)
           .applyAxisAngle(zAxis, Math.PI / 2),
       )
+
+      if (lightRef.current) {
+        lightRef.current.position.copy(
+          smoothDeviceForceWithGravity.current
+            .clone()
+            .normalize()
+            .multiplyScalar(-10)
+            .applyAxisAngle(zAxis, Math.PI / 2),
+        )
+      }
     }
 
     if (wasUpdated.current) {
-      enableDrag.current = false
+      // enableDrag.current = false
+      dragRef.current?.disableDrag()
     }
   })
 
@@ -133,52 +106,42 @@ export default function Level({ children }: LevelProps) {
 
   return (
     <>
-      {children}
-      <Walls
-        onClick={handleClick}
-        position={[0, 0, 0]}
-        thickness={0.1}
-        size={[9, 16, 9]}
-      />
-      <Hoop position={[-1.5, 0, -2]} />
-      <MyBox color='red' position={[-1.5, 0, -3.5]} />
-      <MyBox color='blue' position={[-1.5, -2, -3.5]} />
-      <MyBox color='green' position={[-3.5, 2, -3.5]} />
-      <MyBox color='orange' position={[-3.5, 4, -3.5]} />
-      <MyBox color='yellow' position={[-1.5, 4, -1.5]} />
-      <MyBox color='purple' position={[-1.5, 2, 0.5]} />
-      <Mill position={[0, -5, 0]} />
-
-      <HangingLight position={[0, 8, 0]} />
-      <group ref={draggingRef}>
-        <mesh
-          onPointerDown={handlePointerDown}
-          onPointerUp={handleCancel}
-          onPointerMove={handlePointerMove}
-          onPointerCancel={handleCancel}
-          onPointerLeave={handleCancel}
-          visible={true}
-        >
-          <sphereGeometry args={[20, 12, 12]} />
-          {/* <meshBasicMaterial wireframe /> */}
-          <DragMaterial
-            color={new THREE.Color('lightblue')}
-            alpha={1}
-            side={1}
+      <group position={[3, 3, 3]}>
+        <directionalLight ref={lightRef} castShadow>
+          <orthographicCamera
+            near={0.1}
+            far={40}
+            left={-10}
+            right={10}
+            top={10}
+            bottom={-10}
+            attach='shadow-camera'
           />
-        </mesh>
+        </directionalLight>
       </group>
-      <RigidBody type={'fixed'} colliders='trimesh' position={[3, -2, 0]}>
-        <Funnel></Funnel>
-      </RigidBody>
+
+      <Walls position={[0, 0, 0]} thickness={0.1} size={props.size} />
+      <hemisphereLight args={['#ffeedd', '#eeeeee', 0.5]} />
+
+      <Sphere />
+      <group
+        position={[-props.size[0] / 2, -props.size[1] / 2, -props.size[2] / 2]}
+      >
+        {props.children}
+      </group>
+      <Drag ref={dragRef} />
       <group ref={cameraGroup}>
         <PerspectiveCamera
-          position={[0, 0, 30]}
-          zoom={4}
+          position={[0, -1, 14]}
+          rotation={[0, 0, 0]}
+          // position={[-14.5, -1, 0]}
+          // rotation={[0, -Math.PI / 2, 0]}
+
+          // position={[0, -1, 14.5]}
           near={0.1}
-          far={200}
+          far={50}
           makeDefault
-          fov={120}
+          fov={75}
         ></PerspectiveCamera>
       </group>
     </>

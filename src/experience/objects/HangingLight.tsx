@@ -24,7 +24,7 @@ const HangingLight = (props: GroupProps) => {
          * as a non-moving anchor
          */}
         <RigidBody ref={anchor} />
-        <RigidBody canSleep={false} ref={box} mass={2}>
+        <RigidBody canSleep={false} ref={box} mass={4}>
           <Box args={[0.1, 1.5, 0.1]}>
             <meshPhysicalMaterial />
           </Box>
@@ -35,7 +35,7 @@ const HangingLight = (props: GroupProps) => {
                 emissiveIntensity={1.5}
               />
             </Sphere>
-            <pointLight position={[0, -1, 0]} castShadow />
+            <pointLight position={[0, -1, 0]} castShadow intensity={0.8} />
           </MeshCollider>
         </RigidBody>
       </group>

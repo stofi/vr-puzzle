@@ -5,6 +5,8 @@ import { RoundedBox } from '@react-three/drei'
 import { GroupProps } from '@react-three/fiber'
 import { RigidBody, useRevoluteJoint } from '@react-three/rapier'
 
+import PlasticMaterial from '$/materials/PlasticMaterial'
+
 const Mill = (props: GroupProps) => {
   /**
    * Joints can be created between two RigidBodies
@@ -26,17 +28,22 @@ const Mill = (props: GroupProps) => {
        */}
       <RigidBody ref={anchor} />
       <RigidBody canSleep={false} ref={box}>
-        <RoundedBox castShadow receiveShadow radius={0.1} args={[4, 0.2, 3]}>
-          <meshPhysicalMaterial color='SaddleBrown' roughness={0.8} />
+        <RoundedBox
+          castShadow
+          receiveShadow
+          radius={0.05}
+          args={[1.9, 0.2, 0.8]}
+        >
+          <PlasticMaterial color='SaddleBrown' roughness={0.8} />
         </RoundedBox>
         <RoundedBox
           castShadow
           receiveShadow
-          radius={0.1}
-          args={[4, 0.2, 3]}
+          radius={0.05}
+          args={[1.9, 0.2, 0.8]}
           rotation={[0, 0, Math.PI / 2]}
         >
-          <meshPhysicalMaterial color='SaddleBrown' roughness={0.8} />
+          <PlasticMaterial color='SaddleBrown' roughness={0.8} />
         </RoundedBox>
       </RigidBody>
     </group>

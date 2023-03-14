@@ -3,18 +3,13 @@ import * as THREE from 'three'
 import CustomShaderMaterial from 'three-custom-shader-material'
 import { useRef } from 'react'
 
+import { useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
 import { useControls } from 'leva'
 
 import fragmentShader from './shaders/fragment.glsl'
 import vertexShader from './shaders/vertex.glsl'
-
-const textures = [
-  './textures/snow/albedo.jpg',
-  './textures/snow/roughness.jpg',
-  './textures/snow/normal.jpg',
-]
 
 const textureHandler = (texture: THREE.Texture | THREE.Texture[]) => {
   if (Array.isArray(texture)) {
@@ -32,8 +27,6 @@ const textureHandler = (texture: THREE.Texture | THREE.Texture[]) => {
 
 export default function DragMaterial(props: DragMaterialProps) {
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
-
-  // const [albedo, roughness, normal] = useTexture(textures, textureHandler)
 
   const { t1 } = useControls({
     t1: {

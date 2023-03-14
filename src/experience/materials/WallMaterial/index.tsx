@@ -3,37 +3,26 @@ import * as THREE from 'three'
 import CustomShaderMaterial from 'three-custom-shader-material'
 import { useRef } from 'react'
 
+import { useTexture } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 
 import { useControls } from 'leva'
+
+import { textureHandler } from '$/materials/textureHandler'
 
 import fragmentShader from './shaders/fragment.glsl'
 import vertexShader from './shaders/vertex.glsl'
 
 const textures = [
-  './textures/snow/albedo.jpg',
-  './textures/snow/roughness.jpg',
-  './textures/snow/normal.jpg',
+  './textures/plastic/albedo.png',
+  './textures/plastic/roughness.png',
+  './textures/plastic/normal.png',
 ]
-
-const textureHandler = (texture: THREE.Texture | THREE.Texture[]) => {
-  if (Array.isArray(texture)) {
-    texture.forEach(textureHandler)
-
-    return
-  }
-  texture.encoding = THREE.sRGBEncoding
-  texture.wrapS = THREE.RepeatWrapping
-  texture.wrapT = THREE.RepeatWrapping
-  texture.minFilter = THREE.LinearFilter
-
-  texture.needsUpdate = true
-}
 
 export default function CustomMaterial(props: { color?: string }) {
   const materialRef = useRef<THREE.ShaderMaterial | null>(null)
 
-  // const [albedo, roughness, normal] = useTexture(textures, textureHandler)
+  const [albedo, roughness, normal] = useTexture(textures, textureHandler)
 
   const { t1 } = useControls({
     t1: {
@@ -55,14 +44,17 @@ export default function CustomMaterial(props: { color?: string }) {
 
   return (
     <CustomShaderMaterial
-      roughness={0.8}
-      metalness={1}
       color={props.color}
       baseMaterial={THREE.MeshStandardMaterial}
       ref={materialRef}
       vertexShader={vertexShader}
       fragmentShader={fragmentShader}
       uniforms={{}}
+      side={1}
+      roughnessMap={roughness}
+      normalMap={normal}
+      // normalScale={new THREE.Vector2(-1, -1)}
+      map={albedo}
     />
   )
 }

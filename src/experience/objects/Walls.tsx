@@ -4,6 +4,10 @@ import { useRef } from 'react'
 import { RoundedBox } from '@react-three/drei'
 import { RigidBody } from '@react-three/rapier'
 
+import WallMaterial from '$/materials/WallMaterial'
+
+// import GlassMaterial from '$/materials/GlassMaterial'
+
 interface WallProps {
   position: [number, number, number]
   size: [number, number, number]
@@ -71,18 +75,26 @@ export default function Walls(props: WallProps) {
 
       <RoundedBox
         ref={modelRef}
-        position={props.position}
-        args={[props.size[0], props.size[1], props.size[2]]}
-        radius={0.5}
+        position={[
+          props.position[0],
+          props.position[1],
+          props.position[2] + 0.5,
+        ]}
+        args={[props.size[0], props.size[1], props.size[2] + 1]}
+        radius={0.1}
         receiveShadow
-        smoothness={4}
+        smoothness={8}
       >
-        <meshStandardMaterial
-          color='silver'
-          roughness={0.4}
-          side={1}
-        ></meshStandardMaterial>
+        <WallMaterial color='#ffffff' />
       </RoundedBox>
+
+      {/* <RoundedBox
+        position={[0, 0, props.size[2] + 0.5]}
+        radius={0.05}
+        args={[props.size[0] + 1, props.size[1] + 1, 0.1]}
+      >
+        <GlassMaterial roughness={0.1} />
+      </RoundedBox> */}
     </>
   )
 }
