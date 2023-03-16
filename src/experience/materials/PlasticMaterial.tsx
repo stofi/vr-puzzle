@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { useMemo, useRef } from 'react'
 
 import { useTexture } from '@react-three/drei'
 
@@ -16,16 +17,29 @@ const textures = [
   './textures/plastic/normal.png',
 ]
 
+const mat = new THREE.MeshStandardMaterial()
+
 export default function PlasticMaterial(props: PlasticMaterialProps) {
   const [albedo, roughness, normal] = useTexture(textures, textureHandler)
 
+  const ref = useRef(null)
+
+  const material = useMemo(() => {
+    const m = mat.clone()
+
+    return m
+  }, [])
+
   return (
-    <meshStandardMaterial
+    <primitive
+      ref={ref}
+      object={material}
+      {...props}
       map={albedo}
       roughnessMap={roughness}
       normalMap={normal}
-      normalScale={new THREE.Vector2(-1, -1)}
       color={props.color}
+      attach='material'
     />
   )
 }

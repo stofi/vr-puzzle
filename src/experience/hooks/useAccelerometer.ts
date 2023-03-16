@@ -15,6 +15,7 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
   const beta = useRef(0)
   const gamma = useRef(0)
   const matrix = useRef(new THREE.Matrix4())
+  const quaternion = useRef(new THREE.Quaternion())
   const euler = useRef(new THREE.Euler(0, 0, 0, 'YXZ'))
   const deviceDirection = useRef(new THREE.Vector3(0, 0, -1))
   const viewportDirection = useRef(new THREE.Vector3())
@@ -45,6 +46,7 @@ export default function useAccelerometer(options?: AccelerometerOptions) {
     // Set the rotation matrix
     euler.current.set(beta.current, alpha.current, -gamma.current)
     matrix.current.makeRotationFromEuler(euler.current)
+    quaternion.current.setFromEuler(euler.current)
 
     smoothDeviceDirection.current.lerp(deviceDirection.current, lerp)
 

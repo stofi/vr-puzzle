@@ -14,7 +14,7 @@ export default function Hoop(props: { position: [number, number, number] }) {
       {/* <mesh>
         <torusGeometry args={[1, 0.1, 16, 32]} />
       </mesh> */}
-      <Torus args={[0.9, 0.1, 16, 32]} castShadow receiveShadow>
+      <Torus args={[0.9, 0.1, 8, 16]} castShadow receiveShadow>
         <meshStandardMaterial color='gold' metalness={1} roughness={0.4} />
       </Torus>
       <CylinderCollider

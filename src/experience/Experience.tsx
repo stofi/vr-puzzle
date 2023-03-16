@@ -22,7 +22,7 @@ export default function Experience(props: { enableDebug?: boolean }) {
           position: [5, 5, 5],
         }}
       >
-        <SoftShadows focus={0.2} samples={32} />
+        {/* <SoftShadows focus={0.2} samples={32} /> */}
         <Effects />
         <color args={['lightblue']} attach='background' />
         {props.enableDebug && (
@@ -34,7 +34,7 @@ export default function Experience(props: { enableDebug?: boolean }) {
         )}
         <Suspense>
           <Physics>
-            {props.enableDebug && <Debug />}
+            {/* {props.enableDebug && <Debug />} */}
             <Scene />
           </Physics>
         </Suspense>

@@ -25,8 +25,8 @@ export default function MyBox(
         receiveShadow
         position={[props.size[0] / 2, props.size[1] / 2, props.size[2] / 2]}
         args={props.size ?? [1, 1, 1]} // Width, height, depth. Default is [1, 1, 1]
-        radius={0.1} // Radius of the rounded corners. Default is 0.05
-        smoothness={4} // The number of curve segments. Default is 4
+        radius={0.08} // Radius of the rounded corners. Default is 0.05
+        smoothness={2} // The number of curve segments. Default is 4
       >
         {props.glass ? (
           <GlassMaterial

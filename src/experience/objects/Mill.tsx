@@ -32,6 +32,7 @@ const Mill = (props: GroupProps) => {
           castShadow
           receiveShadow
           radius={0.05}
+          smoothness={2}
           args={[1.9, 0.2, 0.8]}
         >
           <PlasticMaterial color='SaddleBrown' roughness={0.8} />
@@ -40,6 +41,7 @@ const Mill = (props: GroupProps) => {
           castShadow
           receiveShadow
           radius={0.05}
+          smoothness={2}
           args={[1.9, 0.2, 0.8]}
           rotation={[0, 0, Math.PI / 2]}
         >

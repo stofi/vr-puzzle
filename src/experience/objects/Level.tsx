@@ -2,28 +2,55 @@ import * as THREE from 'three'
 import { useEffect, useRef } from 'react'
 
 import {
+  GizmoHelper,
+  GizmoViewport,
   PerspectiveCamera,
+  PivotControls,
   // MeshTransmissionMaterial,
 } from '@react-three/drei'
 import { GroupProps, useFrame } from '@react-three/fiber'
 import { useRapier } from '@react-three/rapier'
 
-import type { DragRef } from '#/Drag'
-import Drag from '#/Drag'
+import type {
+  CustomControlsApi,
+  CustomControlsOrientation,
+} from '#/CustomControls'
+import CustomControls from '#/CustomControls'
 import Sphere from '#/Sphere'
 import Walls from '#/Walls'
 import useAccelerometer from '$/hooks/useAccelerometer'
+import useDrag from '$/hooks/useDrag'
+import CustomMaterial from '$/materials/CustomMaterial'
 
 const zAxis = new THREE.Vector3(1, 0, 0)
+
+const upD = new THREE.Vector3(0, 0, 1)
+const downD = new THREE.Vector3(0, 0, -1)
+const leftD = new THREE.Vector3(1, 0, 0)
+const rightD = new THREE.Vector3(-1, 0, 0)
+const frontD = new THREE.Vector3(0, 1, 0)
+const backD = new THREE.Vector3(0, -1, 0)
+const noneD = new THREE.Vector3(0, 0, 0)
+new THREE.Vector3(0, 0, -1)
+new THREE.Vector3(1, 0, 0)
+new THREE.Vector3(-1, 0, 0)
+new THREE.Vector3(0, 1, 0)
+new THREE.Vector3(0, -1, 0)
+new THREE.Vector3(0, 0, 0)
 
 interface LevelProps extends GroupProps {
   size: [number, number, number]
 }
+const down = new THREE.Vector3(0, -1, 0)
+const gravityFactor = 40
 
 export default function Level(props: LevelProps) {
   const cameraGroup = useRef<THREE.Group | null>(null)
-  const dragRef = useRef<DragRef | null>(null)
-  const lightRef = useRef<THREE.DirectionalLight | null>(null)
+  const levelRef = useRef<THREE.Group | null>(null)
+  const manualControl = useRef(true)
+  const customControlsRef = useRef<CustomControlsApi | null>(null)
+
+  const { downForce } = useDrag(10)
 
   const {
     update,
@@ -32,13 +59,44 @@ export default function Level(props: LevelProps) {
     isDenied,
     isGranted,
     wasUpdated,
-    // worldForceWithGravity,
-    // deviceForceWithGravity,
     smoothDeviceForceWithGravity,
   } = useAccelerometer()
   const { world } = useRapier()
 
   const forceTimeout = useRef<number>(0)
+  const orientation = useRef<CustomControlsOrientation>('none')
+
+  const handleOrientationChange = (nOrientation: CustomControlsOrientation) => {
+    orientation.current = nOrientation
+  }
+
+  const lerpDown = () => {
+    const f = 0.01
+
+    switch (orientation.current) {
+      case 'up':
+        downForce.current.lerp(upD, f)
+        break
+      case 'down':
+        downForce.current.lerp(downD, f)
+        break
+      case 'left':
+        downForce.current.lerp(leftD, f)
+        break
+      case 'right':
+        downForce.current.lerp(rightD, f)
+        break
+      case 'front':
+        downForce.current.lerp(frontD, f)
+        break
+      case 'back':
+        downForce.current.lerp(backD, f)
+        break
+      case 'none':
+        downForce.current.lerp(noneD, f)
+        break
+    }
+  }
 
   useFrame((state, delta) => {
     update()
@@ -48,41 +106,38 @@ export default function Level(props: LevelProps) {
     }
     forceTimeout.current = Math.max(0, forceTimeout.current)
 
-    if (dragRef.current && dragRef.current.dragEnabled()) {
-      world.setGravity(
-        dragRef.current.getDirection().clone().multiplyScalar(20),
-      )
+    if (manualControl.current && levelRef.current) {
+      lerpDown()
+      downForce.current.lerp
+      world.setGravity(downForce.current.clone().multiplyScalar(gravityFactor))
 
-      if (lightRef.current) {
-        lightRef.current.position.copy(
-          dragRef.current.getDirection().clone().multiplyScalar(-10),
-        )
-      }
-    } else if (isSupported.current && isGranted.current) {
+      levelRef.current.quaternion
+        .setFromUnitVectors(down, downForce.current.clone().normalize())
+        .invert()
+    } else if (isSupported.current && isGranted.current && levelRef.current) {
       // alert(worldForceWithGravity.current.x)
       // console.log(isDenied, isGranted, isSupported)
       world.setGravity(
         smoothDeviceForceWithGravity.current
           .clone()
           .normalize()
-          .multiplyScalar(9.81)
+          .multiplyScalar(gravityFactor)
           .applyAxisAngle(zAxis, Math.PI / 2),
       )
 
-      if (lightRef.current) {
-        lightRef.current.position.copy(
+      levelRef.current.quaternion
+        .setFromUnitVectors(
+          down,
           smoothDeviceForceWithGravity.current
             .clone()
             .normalize()
-            .multiplyScalar(-10)
             .applyAxisAngle(zAxis, Math.PI / 2),
         )
-      }
+        .invert()
     }
 
     if (wasUpdated.current) {
-      // enableDrag.current = false
-      dragRef.current?.disableDrag()
+      manualControl.current = false
     }
   })
 
@@ -106,43 +161,43 @@ export default function Level(props: LevelProps) {
 
   return (
     <>
-      <group position={[3, 3, 3]}>
-        <directionalLight ref={lightRef} castShadow>
-          <orthographicCamera
+      <group ref={levelRef}>
+        <Walls position={[0, 0, 0]} thickness={1} size={props.size} />
+        {/* <hemisphereLight args={['#ffeedd', '#eeeeee', 0.5]} /> */}
+
+        <Sphere />
+        <group
+          position={[
+            -props.size[0] / 2,
+            -props.size[1] / 2,
+            -props.size[2] / 2,
+          ]}
+        >
+          {props.children}
+        </group>
+        <group ref={cameraGroup}>
+          <PerspectiveCamera
+            position={[0, -1, 14]}
+            rotation={[0, 0, 0]}
+            // position={[-14.5, -1, 0]}
+            // rotation={[0, -Math.PI / 2, 0]}
+
+            // position={[0, -1, 14.5]}
             near={0.1}
-            far={40}
-            left={-10}
-            right={10}
-            top={10}
-            bottom={-10}
-            attach='shadow-camera'
+            far={50}
+            makeDefault
+            fov={75}
+          ></PerspectiveCamera>
+          <CustomControls
+            ref={customControlsRef}
+            onOrientationChange={handleOrientationChange}
+            position={[
+              -props.size[0] / 2 - 2,
+              -props.size[1] / 2 + 1,
+              props.size[2] / 2,
+            ]}
           />
-        </directionalLight>
-      </group>
-
-      <Walls position={[0, 0, 0]} thickness={0.1} size={props.size} />
-      <hemisphereLight args={['#ffeedd', '#eeeeee', 0.5]} />
-
-      <Sphere />
-      <group
-        position={[-props.size[0] / 2, -props.size[1] / 2, -props.size[2] / 2]}
-      >
-        {props.children}
-      </group>
-      <Drag ref={dragRef} />
-      <group ref={cameraGroup}>
-        <PerspectiveCamera
-          position={[0, -1, 14]}
-          rotation={[0, 0, 0]}
-          // position={[-14.5, -1, 0]}
-          // rotation={[0, -Math.PI / 2, 0]}
-
-          // position={[0, -1, 14.5]}
-          near={0.1}
-          far={50}
-          makeDefault
-          fov={75}
-        ></PerspectiveCamera>
+        </group>
       </group>
     </>
   )
