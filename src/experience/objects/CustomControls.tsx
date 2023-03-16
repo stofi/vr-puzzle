@@ -27,6 +27,7 @@ const box = new THREE.BoxGeometry(0.5, 0.5, 0.5)
 const CustomControls = forwardRef<CustomControlsApi, CustomControlsProps>(
   function CustomControls(props, ref) {
     const orientation = useRef<CustomControlsOrientation>('none')
+    const groupRef = useRef<THREE.Group | null>(null)
 
     const setOrientation = (newOrientation: CustomControlsOrientation) => {
       orientation.current = newOrientation
@@ -38,6 +39,35 @@ const CustomControls = forwardRef<CustomControlsApi, CustomControlsProps>(
       })
 
       props.onOrientationChange?.(newOrientation)
+      if (!groupRef.current) return
+      groupRef.current.rotation.set(0, 0, 0)
+
+      // switch (newOrientation) {
+      //   case 'up':
+      //     groupRef.current.rotation.x = -Math.PI / 2
+      //     groupRef.current.rotation.z = Math.PI / 2
+      //     break
+      //   case 'down':
+      //     groupRef.current.rotation.x = Math.PI / 2
+      //     groupRef.current.rotation.z = -Math.PI / 2
+      //     break
+      //   case 'left':
+      //     groupRef.current.rotation.z = Math.PI / 2
+      //     groupRef.current.rotation.x = -Math.PI / 2
+      //     break
+      //   case 'right':
+      //     groupRef.current.rotation.z = -Math.PI / 2
+      //     groupRef.current.rotation.x = -Math.PI / 2
+      //     break
+      //   case 'front':
+      //     groupRef.current.rotation.x = -Math.PI / 2
+      //     break
+      //   case 'back':
+      //     groupRef.current.rotation.x = Math.PI / 2
+      //     break
+      //   case 'none':
+      //     break
+      // }
     }
 
     const loopMeshes = (
@@ -76,7 +106,7 @@ const CustomControls = forwardRef<CustomControlsApi, CustomControlsProps>(
 
     return (
       <>
-        <group {...props}>
+        <group {...props} ref={groupRef}>
           <mesh
             ref={(mesh) => {
               meshes.current.up = mesh
